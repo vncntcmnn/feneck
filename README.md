@@ -45,7 +45,7 @@ pyramid_features = fpn(backbone_features)
 ## Architecture Support
 
 - **Hierarchical backbones**: ResNet, RegNet, EfficientNet → use `FPN` or `CustomCSPPAN`
-- **Transformer backbones**: Vision Transformer, Swin → use `SimpleFPN`
+- **Plain Transformer backbones**: Vision Transformer → use `SimpleFPN`
 
 ## Requirements
 
