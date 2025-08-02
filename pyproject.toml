@@ -1,0 +1,45 @@
+[project]
+name = "feneck"
+version = "0.1.0"
+description = "Collection of Feature Extractor Necks"
+readme = "README.md"
+authors = [
+    { name = "Vincent Camenen", email = "vncntcmnn@gmail.com" }
+]
+requires-python = ">=3.10"
+dependencies = [
+    "numpy",
+    "opencv-python-headless>=4.11.0.86",
+    "shapely",
+    "torch; platform_machine!='x86_64' and sys_platform!='darwin'",
+    "torchvision; platform_machine!='x86_64' and sys_platform!='darwin'",
+]
+
+[[tool.uv.index]]
+name = "pytorch-cpu"
+url = "https://download.pytorch.org/whl/cpu"
+explicit = true
+
+[[tool.uv.index]]
+name = "pytorch-cu118"
+url = "https://download.pytorch.org/whl/cu118"
+explicit = true
+
+[dependency-groups]
+dev = [
+    "ipykernel>=6.29.5",
+    "pytest>=8.4.1",
+    "ruff>=0.12.4",
+]
+macos-x86 = [
+    "torch==2.2.0",
+    "torchvision==0.17.0",
+]
+macos-dev = [
+    { include-group = "dev" },
+    { include-group = "macos-x86" },
+]
+
+[build-system]
+requires = ["uv_build>=0.8.0,<0.9"]
+build-backend = "uv_build"
