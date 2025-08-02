@@ -1,12 +1,27 @@
 [project]
 name = "feneck"
 version = "0.1.0"
-description = "Collection of Feature Extractor Necks"
+description = "Feature pyramid network implementations for computer vision tasks"
+license = "Apache-2.0"
 readme = "README.md"
+requires-python = ">=3.10"
 authors = [
     { name = "Vincent Camenen", email = "vncntcmnn@gmail.com" }
 ]
-requires-python = ">=3.10"
+keywords = ["computer-vision", "fpn", "feature-pyramid", "object-detection", "pytorch"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: Apache Software License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+]
+
 dependencies = [
     "numpy",
     "opencv-python-headless>=4.11.0.86",
