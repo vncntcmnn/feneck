@@ -26,19 +26,40 @@ class BasicBlock(nn.Module):
         in_channels: int,
         out_channels: int,
         norm_type: Literal["batch", "group"] | None = None,
+        activation: str = "relu",
         shortcut: bool = True,
+        use_alpha: bool = False,
     ):
         super().__init__()
         self.conv1 = ConvNormLayer(in_channels, out_channels, kernel_size=3, norm_type=norm_type)
         self.conv2 = ConvNormLayer(out_channels, out_channels, kernel_size=3, norm_type=norm_type)
         self.shortcut = shortcut and in_channels == out_channels
+        self.activation = activation
+        self.use_alpha = use_alpha
+
+        if use_alpha:
+            self.alpha = nn.Parameter(torch.ones(1))
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
-        y = F.relu(self.conv1(x))
-        y = F.relu(self.conv2(y))
+        y = self._get_activation(self.conv1(x))
+        y = self._get_activation(self.conv2(y))
         if self.shortcut:
+            if self.use_alpha:
+                return self.alpha * x + y
             return x + y
         return y
+
+    def _get_activation(self, x: torch.Tensor) -> torch.Tensor:
+        if self.activation == "relu":
+            return F.relu(x)
+        elif self.activation == "swish":
+            return F.silu(x)
+        elif self.activation == "mish":
+            return F.mish(x)
+        elif self.activation == "leaky_relu":
+            return F.leaky_relu(x)
+        else:
+            return F.relu(x)
 
 
 class SPP(nn.Module):
@@ -49,17 +70,31 @@ class SPP(nn.Module):
         kernel_size: int,
         pool_sizes: list[int],
         norm_type: Literal["batch", "group"] | None = None,
+        activation: str = "relu",
     ):
         super().__init__()
         self.pools = nn.ModuleList([nn.MaxPool2d(kernel_size=size, stride=1, padding=size // 2) for size in pool_sizes])
         self.conv = ConvNormLayer(in_channels, out_channels, kernel_size, norm_type=norm_type)
+        self.activation = activation
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         outs = [x]
         for pool in self.pools:
             outs.append(pool(x))
         y = torch.cat(outs, dim=1)
-        return F.relu(self.conv(y))
+        return self._get_activation(self.conv(y))
+
+    def _get_activation(self, x: torch.Tensor) -> torch.Tensor:
+        if self.activation == "relu":
+            return F.relu(x)
+        elif self.activation == "swish":
+            return F.silu(x)
+        elif self.activation == "mish":
+            return F.mish(x)
+        elif self.activation == "leaky_relu":
+            return F.leaky_relu(x)
+        else:
+            return F.relu(x)
 
 
 class CSPStage(nn.Module):
@@ -69,28 +104,46 @@ class CSPStage(nn.Module):
         out_channels: int,
         num_blocks: int,
         norm_type: Literal["batch", "group"] | None = None,
+        activation: str = "relu",
         spp: bool = False,
+        use_alpha: bool = False,
     ):
         super().__init__()
         mid_channels = out_channels // 2
         self.conv1 = ConvNormLayer(in_channels, mid_channels, kernel_size=1, norm_type=norm_type)
         self.conv2 = ConvNormLayer(in_channels, mid_channels, kernel_size=1, norm_type=norm_type)
-        self.convs = self._build_blocks(mid_channels, num_blocks, norm_type, spp)
+        self.convs = self._build_blocks(mid_channels, num_blocks, norm_type, activation, spp, use_alpha)
         self.conv3 = ConvNormLayer(mid_channels * 2, out_channels, kernel_size=1, norm_type=norm_type)
+        self.activation = activation
 
     def _build_blocks(
-        self, mid_channels: int, num_blocks: int, norm_type: Literal["batch", "group"] | None, spp: bool
+        self,
+        mid_channels: int,
+        num_blocks: int,
+        norm_type: Literal["batch", "group"] | None,
+        activation: str,
+        spp: bool,
+        use_alpha: bool,
     ) -> nn.Sequential:
         convs = nn.Sequential()
         next_channels_in = mid_channels
 
         for i in range(num_blocks):
-            block = BasicBlock(next_channels_in, mid_channels, norm_type=norm_type, shortcut=False)
+            block = BasicBlock(
+                next_channels_in,
+                mid_channels,
+                norm_type=norm_type,
+                activation=activation,
+                shortcut=False,
+                use_alpha=use_alpha,
+            )
             convs.add_module(str(i), block)
 
             # Add SPP module at the middle of the stage if requested
             if i == (num_blocks - 1) // 2 and spp:
-                spp_module = SPP(mid_channels * 4, mid_channels, 1, [5, 9, 13], norm_type=norm_type)
+                spp_module = SPP(
+                    mid_channels * 4, mid_channels, 1, [5, 9, 13], norm_type=norm_type, activation=activation
+                )
                 convs.add_module("spp", spp_module)
 
             next_channels_in = mid_channels
@@ -98,11 +151,23 @@ class CSPStage(nn.Module):
         return convs
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
-        y1 = F.relu(self.conv1(x))
-        y2 = F.relu(self.conv2(x))
+        y1 = self._get_activation(self.conv1(x))
+        y2 = self._get_activation(self.conv2(x))
         y2 = self.convs(y2)
         y = torch.cat([y1, y2], dim=1)
-        return F.relu(self.conv3(y))
+        return self._get_activation(self.conv3(y))
+
+    def _get_activation(self, x: torch.Tensor) -> torch.Tensor:
+        if self.activation == "relu":
+            return F.relu(x)
+        elif self.activation == "swish":
+            return F.silu(x)
+        elif self.activation == "mish":
+            return F.mish(x)
+        elif self.activation == "leaky_relu":
+            return F.leaky_relu(x)
+        else:
+            return F.relu(x)
 
 
 class TransformerEncoderLayer(nn.Module):
@@ -177,9 +242,11 @@ class CustomCSPPAN(BaseNeck):
         in_strides: Stride values for each input feature level
         out_channels: Number of output channels (same for all levels)
         norm_type: Normalization type applied to all convolution layers
+        activation: Activation function type
         stage_num: Number of stages in each CSP block
         block_num: Number of basic blocks in each CSP stage
         spp: Whether to use SPP (Spatial Pyramid Pooling) in the deepest level
+        use_alpha: Whether to use learnable alpha parameter in residual connections
         width_mult: Width multiplier for channel scaling
         depth_mult: Depth multiplier for block number scaling
         use_transformer: Whether to use transformer enhancement on deepest feature
@@ -195,9 +262,11 @@ class CustomCSPPAN(BaseNeck):
         in_strides: list[int],
         out_channels: int = 256,
         norm_type: Literal["batch", "group"] | None = None,
+        activation: str = "relu",
         stage_num: int = 1,
         block_num: int = 3,
         spp: bool = False,
+        use_alpha: bool = False,
         width_mult: float = 1.0,
         depth_mult: float = 1.0,
         use_transformer: bool = False,
@@ -213,22 +282,21 @@ class CustomCSPPAN(BaseNeck):
         self.block_num = max(round(block_num * depth_mult), 1)
         self.stage_num = stage_num
         self.spp = spp
+        self.use_alpha = use_alpha
         self.norm_type = norm_type
+        self.activation = activation
         self.use_transformer = use_transformer
         self.num_levels = len(in_channels)
 
         # Initialize transformer if needed
         if use_transformer:
-            self.hidden_dim = in_channels[-1]  # Use deepest feature channels
+            self.hidden_dim = in_channels[-1]
             encoder_layer = TransformerEncoderLayer(
                 self.hidden_dim, transformer_num_heads, transformer_dim_feedforward, transformer_dropout
             )
             self.transformer_encoder = TransformerEncoder(encoder_layer, transformer_num_layers)
 
-        # Build FPN stages (top-down path)
         self._build_fpn_stages()
-
-        # Build PAN stages (bottom-up path)
         self._build_pan_stages()
 
     def _build_fpn_stages(self) -> None:
