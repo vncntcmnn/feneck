@@ -9,7 +9,15 @@ Clone the repository and install with uv:
 ```bash
 git clone <repository-url>
 cd feneck
-uv sync
+
+# CPU version
+uv sync --extra cpu
+
+# CUDA 11.8
+uv sync --extra cu118
+
+# CUDA 12.4
+uv sync --extra cu124
 ```
 
 ## Quick Start
