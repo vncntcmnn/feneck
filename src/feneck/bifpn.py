@@ -141,6 +141,11 @@ class BiFPN(BaseNeck):
     BiFPN introduces weighted bidirectional cross-scale connections for improved feature fusion compared to traditional
     FPN and PANet. Key innovations include fast normalized fusion, same-level skip connections, and depthwise separable convolutions.
 
+    Paper:
+        EfficientDet: Scalable and Efficient Object Detection
+        Tan et al., CVPR 2020
+        https://arxiv.org/abs/1911.09070
+
     Args:
         in_channels: Number of input channels for each feature level
         in_strides: Stride values for each input feature level

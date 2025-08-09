@@ -19,6 +19,11 @@ class HRFPN(BaseNeck):
     to the highest resolution, concatenating them, then generating pyramid levels through pooling.
     Originally designed for HRNet but works with any multi-scale backbone.
 
+    Paper:
+        Deep High-Resolution Representation Learning for Visual Recognition
+        Wang et al., TPAMI 2021
+        https://arxiv.org/abs/1908.07919
+
     Args:
         in_channels: Number of input channels for each feature level
         in_strides: Stride values for each input feature level (must be increasing)

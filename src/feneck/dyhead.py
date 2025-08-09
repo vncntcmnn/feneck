@@ -235,6 +235,11 @@ class DyHead(BaseNeck):
     DyHead is typically used after an FPN neck, which is why all input levels are required to have the same number of
     channels (standard FPN output).
 
+    Paper:
+        Dynamic Head: Unifying Object Detection Heads with Attentions
+        Dai et al., CVPR 2021
+        https://arxiv.org/abs/2106.08322
+
     Args:
         in_channels: Number of input channels for each feature level (must be same for all levels)
         in_strides: Stride values for each input feature level

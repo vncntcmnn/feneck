@@ -11,6 +11,11 @@ from feneck.common_layers import ConvNormLayer
 class FPN(BaseNeck):
     """Feature Pyramid Network neck module.
 
+    Paper:
+        Feature Pyramid Networks for Object Detection
+        Lin et al., CVPR 2017
+        https://arxiv.org/abs/1612.03144
+
     Args:
         in_channels: Number of input channels for each feature level
         in_strides: Stride values for each input feature level (must be increasing)
