@@ -237,6 +237,11 @@ class CustomCSPPAN(BaseNeck):
 
     Adapted from PaddleDetection CustomCSPPAN implementation.
 
+    Paper:
+        PP-YOLOv2: A Practical Object Detector
+        Huang et al., 2021
+        https://arxiv.org/abs/2104.10419
+
     Args:
         in_channels: Number of input channels for each feature level
         in_strides: Stride values for each input feature level

@@ -14,6 +14,11 @@ class SimpleFPN(BaseNeck):
     It creates a feature pyramid by applying convolutions at different strides to generate multi-scale
     representations.
 
+    Paper:
+        Exploring Plain Vision Transformer Backbones for Object Detection
+        Li et al., ECCV 2022
+        https://arxiv.org/abs/2203.16527
+
     Args:
         in_channels: Number of input channels (int or single-element list)
         in_strides: Input stride (int or single-element list)
