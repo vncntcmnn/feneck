@@ -33,10 +33,11 @@ uv sync --extra cu124
 
 ```python
 import torch
+
 from feneck import FPN, CustomCSPPAN, SimpleFPN, BiFPN, HRFPN, DyHead
 
 # Standard FPN for hierarchical backbones (ResNet, etc.)
-fpn = FPN(in_channels=[256, 512, 1024, 2048], in_strides=[4, 8, 16, 32], out_channels=256)
+fpn = FPN(in_channels=[256, 512, 1024, 2048], in_strides=[4, 8, 16, 32], out_channels=256, num_levels=5)
 
 # BiFPN for efficient multi-scale fusion
 bifpn = BiFPN(in_channels=[256, 512, 1024], in_strides=[8, 16, 32], out_channels=256, num_levels=5)
