@@ -19,12 +19,12 @@ class FPN(BaseNeck):
     Args:
         in_channels: Number of input channels for each feature level
         in_strides: Stride values for each input feature level (must be increasing)
-        out_channels: Number of output channels (same for all levels), default 256
+        out_channels: Number of output channels (same for all levels)
+        num_levels: Total number of output pyramid levels. If None, uses len(in_channels).
+            Must be >= len(in_channels)
         has_extra_convs: Whether to add extra conv layers for additional pyramid levels.
             False uses max pooling for one extra level (Faster R-CNN style).
             True uses strided convolutions for extra levels (RetinaNet/FCOS style)
-        extra_stage: Number of additional pyramid levels beyond backbone features.
-            Only used when has_extra_convs=True for multiple extra levels
         use_c5: Whether to use backbone's highest feature (c5) as input for first extra level.
             False uses FPN's highest feature (p5) instead. Only affects extra convolutions
         norm_type: Normalization type applied to all convolution layers
@@ -36,16 +36,24 @@ class FPN(BaseNeck):
         in_channels: list[int],
         in_strides: list[int],
         out_channels: int = 256,
+        num_levels: int | None = None,
         has_extra_convs: bool = False,
-        extra_stage: int = 1,
         use_c5: bool = True,
         norm_type: Literal["batch", "group"] | None = None,
         relu_before_extra_convs: bool = True,
     ):
         super().__init__(in_channels, in_strides, out_channels)
 
+        # Set default num_levels to input levels if not specified
+        if num_levels is None:
+            num_levels = len(in_channels)
+
+        if num_levels < len(in_channels):
+            raise ValueError(f"num_levels ({num_levels}) cannot be less than input levels ({len(in_channels)})")
+
+        self.num_levels = num_levels
+        self.extra_levels = num_levels - len(in_channels)
         self.has_extra_convs = has_extra_convs
-        self.extra_stage = extra_stage
         self.use_c5 = use_c5
         self.norm_type = norm_type
         self.relu_before_extra_convs = relu_before_extra_convs
@@ -64,13 +72,9 @@ class FPN(BaseNeck):
             self.fpn_convs.append(fpn_conv)
 
         # Build extra convolutions if needed
-        if has_extra_convs:
-            for stage_idx in range(extra_stage):
-                if stage_idx == 0 and use_c5:
-                    extra_in_channels = in_channels[-1]
-                else:
-                    extra_in_channels = out_channels
-
+        if has_extra_convs and self.extra_levels > 0:
+            for stage_idx in range(self.extra_levels):
+                extra_in_channels = in_channels[-1] if (stage_idx == 0 and use_c5) else out_channels
                 extra_conv = ConvNormLayer(
                     extra_in_channels, out_channels, kernel_size=3, stride=2, norm_type=norm_type
                 )
@@ -99,29 +103,21 @@ class FPN(BaseNeck):
             fpn_features.append(fpn_feature)
 
         # Add extra levels if needed
-        if self.extra_stage > 0:
+        if self.extra_levels > 0:
             if not self.has_extra_convs:
                 # Use max pooling for extra level (Faster R-CNN style)
                 extra_feature = F.max_pool2d(fpn_features[-1], kernel_size=1, stride=2)
                 fpn_features.append(extra_feature)
             else:
-                # Use extra convolutions (RetinaNet/FCOS style)
-                if self.use_c5:
-                    extra_source = features[-1]  # Use backbone c5
-                else:
-                    extra_source = fpn_features[-1]  # Use FPN p5
-
+                # Use extra convolutions (RetinaNet/FCOS style) or use FPN's highest feature
+                extra_source = features[-1]  if self.use_c5 else fpn_features  # Use backbone c5
                 extra_feature = self.fpn_convs[num_backbone_levels](extra_source)
                 fpn_features.append(extra_feature)
 
                 # Add additional extra stages
-                for stage_idx in range(1, self.extra_stage):
+                for stage_idx in range(1, self.extra_levels):
                     conv_idx = num_backbone_levels + stage_idx
-                    if self.relu_before_extra_convs:
-                        extra_input = F.relu(fpn_features[-1])
-                    else:
-                        extra_input = fpn_features[-1]
-
+                    extra_input = F.relu(fpn_features[-1]) if self.relu_before_extra_convs else fpn_features[-1]
                     extra_feature = self.fpn_convs[conv_idx](extra_input)
                     fpn_features.append(extra_feature)
 
@@ -133,9 +129,8 @@ class FPN(BaseNeck):
         strides = self.in_strides.copy()
 
         # Add extra level strides
-        if self.extra_stage > 0:
-            for _ in range(self.extra_stage):
-                next_stride = strides[-1] * 2
-                strides.append(next_stride)
+        for _ in range(self.extra_levels):
+            next_stride = strides[-1] * 2
+            strides.append(next_stride)
 
         return strides
