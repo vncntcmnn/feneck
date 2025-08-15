@@ -23,6 +23,7 @@ uv sync --extra cu124
 ## Available Necks
 
 - **FPN**: Classic Feature Pyramid Network
+- **PAFPN**: Path Aggregation FPN with bottom-up augmentation
 - **BiFPN**: Bidirectional FPN with weighted feature fusion
 - **SimpleFPN**: FPN for single-scale transformer backbones
 - **CustomCSPPAN**: CSP-PAN with optional transformer enhancement
@@ -35,10 +36,13 @@ uv sync --extra cu124
 ```python
 import torch
 
-from feneck import FPN, CustomCSPPAN, SimpleFPN, BiFPN, HRFPN, DyHead, FeaturePyramidExtender
+from feneck import FPN, PAFPN, CustomCSPPAN, SimpleFPN, BiFPN, HRFPN, DyHead, FeaturePyramidExtender
 
 # Standard FPN for hierarchical backbones (ResNet, etc.)
 fpn = FPN(in_channels=[256, 512, 1024, 2048], in_strides=[4, 8, 16, 32], out_channels=256, num_levels=5)
+
+# PAFPN for enhanced feature fusion with bottom-up augmentation
+pafpn = PAFPN(in_channels=[256, 512, 1024], in_strides=[8, 16, 32], out_channels=256, num_levels=5)
 
 # BiFPN for efficient multi-scale fusion
 bifpn = BiFPN(in_channels=[256, 512, 1024], in_strides=[8, 16, 32], out_channels=256, num_levels=5)
@@ -72,7 +76,7 @@ pyramid_features = fpn(backbone_features)
 
 ## Architecture Support
 
-- **Hierarchical backbones**: ResNet, RegNet, EfficientNet → use `FPN`, `BiFPN`, `CustomCSPPAN`, `HRFPN`
+- **Hierarchical backbones**: ResNet, RegNet, EfficientNet → use `FPN`, `PAFPN`, `BiFPN`, `CustomCSPPAN`, `HRFPN`
 - **Plain Transformer backbones**: Vision Transformer → use `SimpleFPN`
 - **Post-FPN refinement**: Any FPN output → use `DyHead` (requires uniform channels)
 - **Preprocessing**: Any backbone → use `FeaturePyramidExtender` for level/channel preparation
