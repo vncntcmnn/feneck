@@ -20,16 +20,17 @@ uv sync --extra cu124
 
 ## Available Necks
 
-| Neck                       | Description                            | Use Case                       |
-|----------------------------|----------------------------------------|--------------------------------|
-| **FPN**                    | Classic Feature Pyramid Network        | Standard multi-scale detection |
-| **BiFPN**                  | Bidirectional FPN with weighted fusion | Efficient multi-scale fusion   |
-| **NASFPN**                 | Neural Architecture Search FPN         | Learned fusion patterns        |
-| **SimpleFPN**              | FPN for transformer backbones          | Single-scale to multi-scale    |
-| **CustomCSPPAN**           | CSP-PAN with transformer enhancement   | Advanced feature aggregation   |
-| **HRFPN**                  | High-Resolution FPN                    | Multi-scale aggregation        |
-| **DyHead**                 | Dynamic Head with attention            | Post-FPN refinement            |
-| **FeaturePyramidExtender** | Level/channel preprocessing            | Backbone adaptation            |
+| Neck                       | Description                            | Use Case                        |
+|----------------------------|----------------------------------------|---------------------------------|
+| **FPN**                    | Classic Feature Pyramid Network        | Standard multi-scale detection  |
+| **BiFPN**                  | Bidirectional FPN with weighted fusion | Efficient multi-scale fusion    |
+| **NASFPN**                 | Neural Architecture Search FPN         | Learned fusion patterns         |
+| **SimpleFPN**              | FPN for transformer backbones          | Single-scale to multi-scale     |
+| **CustomCSPPAN**           | CSP-PAN with transformer enhancement   | Advanced feature aggregation    |
+| **HRFPN**                  | High-Resolution FPN                    | Multi-scale aggregation         |
+| **LRFPN**                  | Location-Refined FPN                   | Remote sensing object detection |
+| **DyHead**                 | Dynamic Head with attention            | Post-FPN refinement             |
+| **FeaturePyramidExtender** | Level/channel preprocessing            | Backbone adaptation             |
 
 ## Quick Examples
 
@@ -73,6 +74,18 @@ simple_fpn = SimpleFPN(
 )
 ```
 
+### Specialized Applications
+```python
+from feneck import LRFPN
+
+# For remote sensing object detection
+lrfpn = LRFPN(
+    in_channels=[256, 512, 1024],  # shallow, F2, F3
+    in_strides=[4, 8, 16],
+    out_channels=256
+)
+```
+
 ### Advanced Features
 ```python
 from feneck import CustomCSPPAN, DyHead, FeaturePyramidExtender
@@ -103,12 +116,12 @@ extender = FeaturePyramidExtender(
 
 ## Architecture Compatibility
 
-| Backbone Type                    | Recommended Necks                       |
-|----------------------------------|-----------------------------------------|
-| **ResNet, RegNet, EfficientNet** | FPN, BiFPN, NASFPN, CustomCSPPAN, HRFPN |
-| **Vision Transformer**           | SimpleFPN                               |
-| **Any backbone**                 | FeaturePyramidExtender (preprocessing)  |
-| **Post-FPN processing**          | DyHead                                  |
+| Backbone Type                    | Recommended Necks                              |
+|----------------------------------|------------------------------------------------|
+| **ResNet, RegNet, EfficientNet** | FPN, BiFPN, NASFPN, CustomCSPPAN, HRFPN, LRFPN |
+| **Vision Transformer**           | SimpleFPN                                      |
+| **Any backbone**                 | FeaturePyramidExtender (preprocessing)         |
+| **Post-FPN processing**          | DyHead                                         |
 
 ## Forward Pass Example
 
