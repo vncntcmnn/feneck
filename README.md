@@ -23,12 +23,14 @@ uv sync --extra cu124
 | Neck                       | Description                            | Use Case                        |
 |----------------------------|----------------------------------------|---------------------------------|
 | **FPN**                    | Classic Feature Pyramid Network        | Standard multi-scale detection  |
+| **PAFPN**                  | Path Aggregation FPN with bottom-up augmentation | Enhanced feature fusion |
 | **BiFPN**                  | Bidirectional FPN with weighted fusion | Efficient multi-scale fusion    |
 | **NASFPN**                 | Neural Architecture Search FPN         | Learned fusion patterns         |
 | **SimpleFPN**              | FPN for transformer backbones          | Single-scale to multi-scale     |
 | **CustomCSPPAN**           | CSP-PAN with transformer enhancement   | Advanced feature aggregation    |
 | **HRFPN**                  | High-Resolution FPN                    | Multi-scale aggregation         |
 | **LRFPN**                  | Location-Refined FPN                   | Remote sensing object detection |
+| **CARAFE**                 | Content-Aware ReAssembly of FEatures   | Content-aware upsampling        |
 | **DyHead**                 | Dynamic Head with attention            | Post-FPN refinement             |
 | **FeaturePyramidExtender** | Level/channel preprocessing            | Backbone adaptation             |
 
@@ -37,12 +39,19 @@ uv sync --extra cu124
 ### Standard Hierarchical Backbones
 ```python
 import torch
-from feneck import FPN, BiFPN, NASFPN
+from feneck import FPN, PAFPN, BiFPN, NASFPN, CARAFE
 
 # Classic FPN
 fpn = FPN(
     in_channels=[256, 512, 1024, 2048],
     in_strides=[4, 8, 16, 32],
+    out_channels=256
+)
+
+# Path Aggregation FPN
+pafpn = PAFPN(
+    in_channels=[256, 512, 1024],
+    in_strides=[8, 16, 32],
     out_channels=256
 )
 
@@ -55,6 +64,13 @@ bifpn = BiFPN(
 
 # NAS-discovered architecture
 nasfpn = NASFPN(
+    in_channels=[256, 512, 1024],
+    in_strides=[8, 16, 32],
+    out_channels=256
+)
+
+# Content-aware upsampling
+carafe = CARAFE(
     in_channels=[256, 512, 1024],
     in_strides=[8, 16, 32],
     out_channels=256
@@ -116,12 +132,12 @@ extender = FeaturePyramidExtender(
 
 ## Architecture Compatibility
 
-| Backbone Type                    | Recommended Necks                              |
-|----------------------------------|------------------------------------------------|
-| **ResNet, RegNet, EfficientNet** | FPN, BiFPN, NASFPN, CustomCSPPAN, HRFPN, LRFPN |
-| **Vision Transformer**           | SimpleFPN                                      |
-| **Any backbone**                 | FeaturePyramidExtender (preprocessing)         |
-| **Post-FPN processing**          | DyHead                                         |
+| Backbone Type                    | Recommended Necks                                      |
+|----------------------------------|--------------------------------------------------------|
+| **ResNet, RegNet, EfficientNet** | FPN, PAFPN, BiFPN, NASFPN, CustomCSPPAN, HRFPN, LRFPN, CARAFE |
+| **Vision Transformer**           | SimpleFPN                                              |
+| **Any backbone**                 | FeaturePyramidExtender (preprocessing)                 |
+| **Post-FPN processing**          | DyHead                                                 |
 
 ## Forward Pass Example
 

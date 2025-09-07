@@ -1,4 +1,5 @@
 from feneck.bifpn import BiFPN
+from feneck.carafe import CARAFE
 from feneck.custom_pan import CustomCSPPAN
 from feneck.dyhead import DyHead
 from feneck.extender import FeaturePyramidExtender
@@ -11,6 +12,7 @@ from feneck.simple_fpn import SimpleFPN
 
 __all__ = [
     "BiFPN",
+    "CARAFE",
     "CustomCSPPAN",
     "DyHead",
     "FeaturePyramidExtender",
