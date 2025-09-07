@@ -4,8 +4,6 @@ Feature extraction neck modules for computer vision models.
 
 ## Installation
 
-Clone the repository and install with uv:
-
 ```bash
 git clone <repository-url>
 cd feneck
@@ -22,64 +20,110 @@ uv sync --extra cu124
 
 ## Available Necks
 
-- **FPN**: Classic Feature Pyramid Network
-- **PAFPN**: Path Aggregation FPN with bottom-up augmentation
-- **BiFPN**: Bidirectional FPN with weighted feature fusion
-- **SimpleFPN**: FPN for single-scale transformer backbones
-- **CustomCSPPAN**: CSP-PAN with optional transformer enhancement
-- **HRFPN**: High-Resolution FPN for multi-scale aggregation
-- **DyHead**: Dynamic Head with attention mechanisms
-- **FeaturePyramidExtender**: Extends pyramids by adding levels and/or unifying channels
+| Neck                       | Description                            | Use Case                       |
+|----------------------------|----------------------------------------|--------------------------------|
+| **FPN**                    | Classic Feature Pyramid Network        | Standard multi-scale detection |
+| **BiFPN**                  | Bidirectional FPN with weighted fusion | Efficient multi-scale fusion   |
+| **NASFPN**                 | Neural Architecture Search FPN         | Learned fusion patterns        |
+| **SimpleFPN**              | FPN for transformer backbones          | Single-scale to multi-scale    |
+| **CustomCSPPAN**           | CSP-PAN with transformer enhancement   | Advanced feature aggregation   |
+| **HRFPN**                  | High-Resolution FPN                    | Multi-scale aggregation        |
+| **DyHead**                 | Dynamic Head with attention            | Post-FPN refinement            |
+| **FeaturePyramidExtender** | Level/channel preprocessing            | Backbone adaptation            |
 
-## Quick Start
+## Quick Examples
 
+### Standard Hierarchical Backbones
 ```python
 import torch
+from feneck import FPN, BiFPN, NASFPN
 
-from feneck import FPN, PAFPN, CustomCSPPAN, SimpleFPN, BiFPN, HRFPN, DyHead, FeaturePyramidExtender
-
-# Standard FPN for hierarchical backbones (ResNet, etc.)
-fpn = FPN(in_channels=[256, 512, 1024, 2048], in_strides=[4, 8, 16, 32], out_channels=256, num_levels=5)
-
-# PAFPN for enhanced feature fusion with bottom-up augmentation
-pafpn = PAFPN(in_channels=[256, 512, 1024], in_strides=[8, 16, 32], out_channels=256, num_levels=5)
-
-# BiFPN for efficient multi-scale fusion
-bifpn = BiFPN(in_channels=[256, 512, 1024], in_strides=[8, 16, 32], out_channels=256, num_levels=5)
-
-# SimpleFPN for transformer backbones (ViT, etc.)
-simple_fpn = SimpleFPN(in_channels=768, in_strides=16, out_channels=256, num_levels=5, start_level=2)
-
-# Custom CSP-PAN with transformer enhancement
-csp_pan = CustomCSPPAN(
-    in_channels=[256, 512, 1024, 2048], in_strides=[4, 8, 16, 32], out_channels=256, use_transformer=True
+# Classic FPN
+fpn = FPN(
+    in_channels=[256, 512, 1024, 2048],
+    in_strides=[4, 8, 16, 32],
+    out_channels=256
 )
 
-# HRFPN for high-resolution representation learning
-hrfpn = HRFPN(in_channels=[256, 512, 1024], in_strides=[8, 16, 32], out_channels=256, num_levels=5)
-
-# DyHead for attention-based feature refinement (requires same input channels)
-dyhead = DyHead(in_channels=[256, 256, 256], in_strides=[8, 16, 32], out_channels=256, num_blocks=6)
-
-# FeaturePyramidExtender for preprocessing (extend levels + unify channels)
-extender = FeaturePyramidExtender(
-    in_channels=[256, 512, 1024], in_strides=[8, 16, 32], out_channels=256, num_levels=5
+# Efficient BiFPN
+bifpn = BiFPN(
+    in_channels=[256, 512, 1024],
+    in_strides=[8, 16, 32],
+    out_channels=256
 )
 
-# Forward pass example
-backbone_features = [
-    torch.randn(1, c, 64 // (s // 4), 64 // (s // 4))
-    for c, s in zip([256, 512, 1024, 2048], [4, 8, 16, 32], strict=True)
-]
-pyramid_features = fpn(backbone_features)
+# NAS-discovered architecture
+nasfpn = NASFPN(
+    in_channels=[256, 512, 1024],
+    in_strides=[8, 16, 32],
+    out_channels=256
+)
 ```
 
-## Architecture Support
+### Transformer Backbones
+```python
+from feneck import SimpleFPN
 
-- **Hierarchical backbones**: ResNet, RegNet, EfficientNet → use `FPN`, `PAFPN`, `BiFPN`, `CustomCSPPAN`, `HRFPN`
-- **Plain Transformer backbones**: Vision Transformer → use `SimpleFPN`
-- **Post-FPN refinement**: Any FPN output → use `DyHead` (requires uniform channels)
-- **Preprocessing**: Any backbone → use `FeaturePyramidExtender` for level/channel preparation
+# For Vision Transformers
+simple_fpn = SimpleFPN(
+    in_channels=768,
+    in_strides=16,
+    out_channels=256,
+    start_level=2
+)
+```
+
+### Advanced Features
+```python
+from feneck import CustomCSPPAN, DyHead, FeaturePyramidExtender
+
+# CSP-PAN with transformer
+csp_pan = CustomCSPPAN(
+    in_channels=[256, 512, 1024],
+    in_strides=[8, 16, 32],
+    out_channels=256,
+    use_transformer=True
+)
+
+# Post-FPN refinement (requires uniform channels)
+dyhead = DyHead(
+    in_channels=[256, 256, 256],
+    in_strides=[8, 16, 32],
+    out_channels=256
+)
+
+# Preprocessing: extend levels + unify channels
+extender = FeaturePyramidExtender(
+    in_channels=[256, 512, 1024],
+    in_strides=[8, 16, 32],
+    out_channels=256,
+    num_levels=5
+)
+```
+
+## Architecture Compatibility
+
+| Backbone Type                    | Recommended Necks                       |
+|----------------------------------|-----------------------------------------|
+| **ResNet, RegNet, EfficientNet** | FPN, BiFPN, NASFPN, CustomCSPPAN, HRFPN |
+| **Vision Transformer**           | SimpleFPN                               |
+| **Any backbone**                 | FeaturePyramidExtender (preprocessing)  |
+| **Post-FPN processing**          | DyHead                                  |
+
+## Forward Pass Example
+
+```python
+# Typical backbone features
+backbone_features = [
+    torch.randn(1, 256, 64, 64),    # stride 4
+    torch.randn(1, 512, 32, 32),    # stride 8
+    torch.randn(1, 1024, 16, 16),   # stride 16
+    torch.randn(1, 2048, 8, 8),     # stride 32
+]
+
+pyramid_features = fpn(backbone_features)
+# Output: 5 levels with 256 channels each
+```
 
 ## Requirements
 
@@ -90,4 +134,4 @@ pyramid_features = fpn(backbone_features)
 
 Apache License 2.0
 
-Some implementations are adapted from other repositories (PaddleDetection, Microsoft Research, Google Research) under compatible licenses.
+Some implementations adapted from PaddleDetection, Microsoft Research, Google Research under compatible licenses.

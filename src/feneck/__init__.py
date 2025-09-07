@@ -4,6 +4,7 @@ from feneck.dyhead import DyHead
 from feneck.extender import FeaturePyramidExtender
 from feneck.fpn import FPN
 from feneck.hrfpn import HRFPN
+from feneck.nasfpn import NASFPN
 from feneck.pafpn import PAFPN
 from feneck.simple_fpn import SimpleFPN
 
@@ -14,6 +15,7 @@ __all__ = [
     "FeaturePyramidExtender",
     "FPN",
     "HRFPN",
+    "NASFPN",
     "PAFPN",
     "SimpleFPN",
 ]
