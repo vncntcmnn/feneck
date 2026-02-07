@@ -1,0 +1,164 @@
+[project]
+name = "feneck"
+version = "0.0.1"
+description = "Feature pyramid network implementations for computer vision tasks"
+authors = [{ name = "Vincent Camenen", email = "vncntcmnn@gmail.com" }]
+readme = "README.md"
+keywords = ['python']
+requires-python = ">=3.10,<4.0"
+classifiers = [
+    "Intended Audience :: Developers",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: Apache Software License",
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+]
+
+dependencies = []
+
+[project.urls]
+Homepage = "https://vncntcmnn.github.io/feneck/"
+Repository = "https://github.com/vncntcmnn/feneck"
+Documentation = "https://vncntcmnn.github.io/feneck/"
+
+[project.optional-dependencies]
+cpu = [
+    "torch>=2.0.0; platform_machine != 'x86_64' or sys_platform != 'darwin'",
+    "torchvision>=0.15.0; platform_machine != 'x86_64' or sys_platform != 'darwin'",
+]
+cu118 = [
+    "torch>=2.0.0; platform_machine != 'x86_64' or sys_platform != 'darwin'",
+    "torchvision>=0.15.0; platform_machine != 'x86_64' or sys_platform != 'darwin'",
+]
+cu124 = [
+    "torch>=2.0.0; platform_machine != 'x86_64' or sys_platform != 'darwin'",
+    "torchvision>=0.15.0; platform_machine != 'x86_64' or sys_platform != 'darwin'",
+]
+macos-x86 = [
+    "numpy==1.*; platform_machine == 'x86_64' and sys_platform == 'darwin'",
+    "torch==2.2.0; platform_machine == 'x86_64' and sys_platform == 'darwin'",
+    "torchvision==0.17.0; platform_machine == 'x86_64' and sys_platform == 'darwin'",
+]
+
+[dependency-groups]
+dev = [
+    "ipykernel>=6.29.5",
+    "pytest>=9.0.2",
+    "pre-commit>=4.5.1",
+    "tox-uv>=1.29.0",
+    "pytest-cov>=7.0.0",
+    "ruff>=0.14.14",
+    "mkdocs>=1.6.1",
+    "mkdocs-material>=9.7.1",
+    "mkdocstrings[python]>=1.0.2",
+]
+
+[tool.uv]
+conflicts = [
+    [
+        { extra = "cpu" },
+        { extra = "cu118" },
+        { extra = "cu124" },
+        { extra = "macos-x86" },
+    ],
+]
+
+[tool.uv.sources]
+torch = [
+    { index = "pytorch-cpu", extra = "cpu" },
+    { index = "pytorch-cu118", extra = "cu118" },
+    { index = "pytorch-cu124", extra = "cu124" },
+    { index = "pytorch-cpu", extra = "macos-x86" },
+]
+torchvision = [
+    { index = "pytorch-cpu", extra = "cpu" },
+    { index = "pytorch-cu118", extra = "cu118" },
+    { index = "pytorch-cu124", extra = "cu124" },
+    { index = "pytorch-cpu", extra = "macos-x86" },
+]
+
+[[tool.uv.index]]
+name = "pytorch-cpu"
+url = "https://download.pytorch.org/whl/cpu"
+explicit = true
+
+[[tool.uv.index]]
+name = "pytorch-cu118"
+url = "https://download.pytorch.org/whl/cu118"
+explicit = true
+
+[[tool.uv.index]]
+name = "pytorch-cu124"
+url = "https://download.pytorch.org/whl/cu124"
+explicit = true
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/feneck"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+
+[tool.ruff]
+target-version = "py310"
+line-length = 120
+fix = true
+
+[tool.ruff.lint]
+select = [
+    # flake8-2020
+    "YTT",
+    # flake8-bandit
+    "S",
+    # flake8-bugbear
+    "B",
+    # flake8-builtins
+    "A",
+    # flake8-comprehensions
+    "C4",
+    # flake8-debugger
+    "T10",
+    # flake8-simplify
+    "SIM",
+    # isort
+    "I",
+    # pycodestyle
+    "E", "W",
+    # pyflakes
+    "F",
+    # pygrep-hooks
+    "PGH",
+    # pyupgrade
+    "UP",
+    # ruff
+    "RUF",
+]
+ignore = [
+    # LineTooLong
+    "E501",
+    # DoNotAssignLambda
+    "E731",
+]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/*" = ["S101"]
+
+[tool.ruff.format]
+preview = true
+
+[tool.coverage.report]
+skip_empty = true
+
+[tool.coverage.run]
+branch = true
+source = ["src"]
