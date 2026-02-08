@@ -30,16 +30,19 @@ Documentation = "https://vncntcmnn.github.io/feneck/"
 
 [project.optional-dependencies]
 cpu = [
-    "torch>=2.0.0",
-    "torchvision>=0.15.0",
+    "numpy>=2.0",
+    "torch>=2.6.0",
+    "torchvision>=0.21.0",
 ]
 cu118 = [
-    "torch>=2.0.0",
-    "torchvision>=0.15.0",
+    "numpy>=2.0",
+    "torch>=2.6.0",
+    "torchvision>=0.21.0",
 ]
 cu124 = [
-    "torch>=2.0.0",
-    "torchvision>=0.15.0",
+    "numpy>=2.0",
+    "torch>=2.6.0",
+    "torchvision>=0.21.0",
 ]
 macos-x86 = [
     # Has to be 1.x since torch and torchvision have been built against it
