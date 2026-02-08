@@ -130,10 +130,8 @@ class FeaturePyramidExtender(BaseNeck):
         """Build layers for adding higher resolution levels (upsampling with transposed conv)."""
         for i in range(self.extra_levels):
             # Use first input feature as source for all higher res levels
-            if self.project_channels:
-                source_channels = out_channels if i > 0 else out_channels  # noqa: RUF034
-            else:
-                source_channels = in_channels[0] if i == 0 else out_channels
+            first_block_channels = in_channels[0] if i == 0 else out_channels
+            source_channels = out_channels if self.project_channels else first_block_channels
 
             stride = 2 ** (self.extra_levels - i)
 
@@ -161,10 +159,8 @@ class FeaturePyramidExtender(BaseNeck):
         """Build layers for adding lower resolution levels (downsampling with strided conv)."""
         for i in range(self.extra_levels):
             # Use last input feature as source for first extra level, then previous extra levels
-            if self.project_channels:
-                source_channels = out_channels if i > 0 else out_channels  # noqa: RUF034
-            else:
-                source_channels = in_channels[-1] if i == 0 else out_channels
+            first_block_channels = in_channels[-1] if i == 0 else out_channels
+            source_channels = out_channels if self.project_channels else first_block_channels
 
             conv = ConvNormLayer(source_channels, out_channels, kernel_size=3, stride=2, norm_type=norm_type)
             self.extra_convs.append(conv)
