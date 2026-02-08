@@ -30,14 +30,17 @@ Documentation = "https://vncntcmnn.github.io/feneck/"
 
 [project.optional-dependencies]
 cpu = [
+    "numpy>=2.0",
     "torch>=2.6.0",
     "torchvision>=0.21.0",
 ]
 cu118 = [
+    "numpy>=2.0",
     "torch>=2.6.0",
     "torchvision>=0.21.0",
 ]
 cu124 = [
+    "numpy>=2.0",
     "torch>=2.6.0",
     "torchvision>=0.21.0",
 ]
